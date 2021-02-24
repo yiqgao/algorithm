@@ -4,10 +4,11 @@ import time
 def output(types):
     def method(func):
         def wrapper(*args, **kwargs):
-            handle_dataset = func(*args, **kwargs)
-            print('运行时间为{duration}'.format(duration=time.process_time()))
-            print('使用{type}算法的结果为:{result}'.format(
-                result=handle_dataset, type=types))
+            handle_dataset, total_calculate_count = func(*args, **kwargs)
+            print('使用\033[1;35m{type}\033[0m算法的运行时间为\033[1;35m{duration}\033[0m,计算总次数为\033[1;35m{cal_count}\033[0m\n'.format(
+                duration=time.process_time(), cal_count=total_calculate_count, type=types))
+            print('结果为:{result}'.format(
+                result=handle_dataset))
         return wrapper
     return method
 
@@ -21,24 +22,52 @@ class OrderFunc:
     def bubble_sort(self):
         handle_dataset = self.dataset[:]
         total_length = len(handle_dataset) - 1
-        j = 0
-        while j < total_length:
+        total_calculate_count = 0
+        period = 0
+        while period < total_length:
             i = 0
             not_change_flag = True  # 某个循环内没有替换元素
-            while i < total_length - j:
+            while i < total_length - period:
                 if handle_dataset[i] > handle_dataset[i+1]:
                     exchange_temp = handle_dataset[i]
                     handle_dataset[i] = handle_dataset[i+1]
                     handle_dataset[i+1] = exchange_temp
                     not_change_flag = False
                 i = i+1
+                total_calculate_count = total_calculate_count + 1
             if not_change_flag:
-                print('本次冒泡循环次数:{count}'.format(count=j))
                 break
-            j = j+1
-        return handle_dataset
+            period = period+1
+        return handle_dataset, total_calculate_count
+
+    @output('选择排序')
+    def selection_sort(self):
+        handle_dataset = self.dataset[:]
+        total_length = len(handle_dataset) - 1
+        total_calculate_count = 0
+        period = 0
+        while period < total_length:
+            i = 0
+            max_num = handle_dataset[0]
+            max_i = 0
+            while i <= total_length - period:
+                if handle_dataset[i] > max_num:
+                    max_num = handle_dataset[i]
+                    max_i = i
+                i = i+1
+                total_calculate_count = total_calculate_count+1
+            handle_dataset[max_i] = handle_dataset[total_length - period]
+            handle_dataset[total_length - period] = max_num
+            period = period + 1
+        return handle_dataset, total_calculate_count
 
 
-p = OrderFunc([23, 65, 13, 45, 24, 17, 19, 33, 76, 35, 54, 33,
-               55, 45, 42, 11, 234, 567, 345, 987, 343, 2, 56, 114, 32])
-p.bubble_sort()
+if __name__ == '__main__':
+    import random
+    sample_data = [random.randint(0,300) for x in range(100)]
+    p = OrderFunc(sample_data)
+    print("\n原始数据为  {list}\n".format(list=sample_data))
+    for item in dir(p):
+        if callable(getattr(p, item)) and item.find('__') == -1:
+            print('-'*50)
+            eval('p.'+item+'()')
